@@ -35,6 +35,12 @@ export function GameSession({ pool, player, deviceId }: GameSessionProps) {
     setCursor((c) => c + 1);
   }
 
+  // Track couldn't be played (region-locked) — swap it out without counting it
+  // against the voluntary re-roll allowance.
+  function handleSkipUnavailable() {
+    setCursor((c) => c + 1);
+  }
+
   function playAgain() {
     setGame(startGame());
     // Keep advancing the cursor so a new game uses fresh tracks where possible.
@@ -76,6 +82,7 @@ export function GameSession({ pool, player, deviceId }: GameSessionProps) {
         onComplete={handleRoundComplete}
         onReroll={handleReroll}
         canReroll={rerollsThisRound < MAX_REROLLS_PER_ROUND}
+        onSkipUnavailable={handleSkipUnavailable}
       />
     </div>
   );

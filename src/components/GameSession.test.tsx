@@ -9,16 +9,19 @@ vi.mock('./Round', () => ({
     onComplete,
     onReroll,
     canReroll,
+    onSkipUnavailable,
   }: {
     track: { id: string };
     onComplete: (score: number) => void;
     onReroll?: () => void;
     canReroll?: boolean;
+    onSkipUnavailable?: () => void;
   }) => (
     <div>
       <span data-testid="track">{track.id}</span>
       <button onClick={() => onComplete(10)}>finish round</button>
       {canReroll && <button onClick={() => onReroll?.()}>reroll</button>}
+      <button onClick={() => onSkipUnavailable?.()}>skip-unavailable</button>
     </div>
   ),
 }));
@@ -69,6 +72,17 @@ describe('GameSession', () => {
     expect(screen.getByText(new RegExp(`Round 1 / ${ROUNDS_PER_GAME}`))).toBeInTheDocument();
     // Only one re-roll allowed per round.
     expect(screen.queryByRole('button', { name: /reroll/i })).toBeNull();
+  });
+
+  it('skips an unavailable track without consuming the re-roll', async () => {
+    render(<GameSession pool={pool} player={player} deviceId="dev" />);
+
+    const first = screen.getByTestId('track').textContent;
+    await userEvent.click(screen.getByRole('button', { name: /skip-unavailable/i }));
+
+    expect(screen.getByTestId('track').textContent).not.toBe(first);
+    // The voluntary re-roll is still available (this skip didn't consume it).
+    expect(screen.getByRole('button', { name: /^reroll$/i })).toBeInTheDocument();
   });
 
   it('can start a new game from the results screen', async () => {

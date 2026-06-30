@@ -143,15 +143,22 @@ export interface ClipCallbacks {
   onStart?: () => void;
   /** Fired when the clip reaches its end and is paused naturally. */
   onEnd?: () => void;
+  /** Fired when the track can't be played (region-locked, SDK error, or timeout). */
+  onError?: (message: string) => void;
 }
+
+// If playback hasn't started within this window we treat the track as
+// unplayable (most commonly: not available in the user's country).
+const PLAYBACK_START_TIMEOUT_MS = 6_000;
 
 /**
  * Play a clip: start at clip.positionMs, then pause after clip.durationMs.
  * Crucially, the pause is timed from the FIRST non-paused player_state_changed
  * event, not from the play() call — play() has ~200–500ms startup latency, so
  * timing from the call makes the short early tiers (2s) feel inconsistent.
- * `onStart`/`onEnd` mark that same real window so the UI countdown lines up.
- * Returns a cancel function that stops the clip and detaches its listener/timer.
+ * `onStart`/`onEnd` mark that same real window so the UI countdown lines up;
+ * `onError` fires if the track fails to play (region-locked / SDK error / never
+ * starts). Returns a cancel function that stops the clip and detaches listeners.
  */
 export function startClip(
   player: Spotify.Player,
@@ -163,27 +170,56 @@ export function startClip(
   let cancelled = false;
   let armed = false;
   let pauseTimer: ReturnType<typeof setTimeout> | null = null;
+  let startTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const cleanup = () => {
+    if (pauseTimer) clearTimeout(pauseTimer);
+    if (startTimer) clearTimeout(startTimer);
+    player.removeListener('player_state_changed', onState);
+    player.removeListener('playback_error', onPlaybackError);
+  };
+
+  // Report a failure only if the clip hasn't already started playing.
+  const fail = (message: string) => {
+    if (cancelled || armed) return;
+    cancelled = true;
+    cleanup();
+    callbacks?.onError?.(message);
+  };
 
   const onState = (state: Spotify.PlaybackState | null) => {
     if (cancelled || armed || !state || state.paused) return;
     armed = true; // first confirmed playback — start the clock now
+    if (startTimer) {
+      clearTimeout(startTimer);
+      startTimer = null;
+    }
     callbacks?.onStart?.();
     pauseTimer = setTimeout(() => {
       player.pause().catch(() => {});
-      player.removeListener('player_state_changed', onState);
+      cleanup();
       callbacks?.onEnd?.();
     }, clip.durationMs);
   };
 
+  const onPlaybackError = ({ message }: Spotify.Error) =>
+    fail(message || 'Playback error');
+
   player.addListener('player_state_changed', onState);
-  playTrack(deviceId, uri, clip.positionMs).catch((err) =>
-    console.error('[SoundCheck] clip playback failed', err),
+  player.addListener('playback_error', onPlaybackError);
+
+  startTimer = setTimeout(
+    () => fail('Playback did not start (track may be unavailable in your country).'),
+    PLAYBACK_START_TIMEOUT_MS,
+  );
+
+  playTrack(deviceId, uri, clip.positionMs).catch(() =>
+    fail('Playback request failed (track may be unavailable in your country).'),
   );
 
   return () => {
     cancelled = true;
-    if (pauseTimer) clearTimeout(pauseTimer);
-    player.removeListener('player_state_changed', onState);
+    cleanup();
     player.pause().catch(() => {});
   };
 }

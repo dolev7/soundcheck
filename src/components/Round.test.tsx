@@ -112,4 +112,19 @@ describe('Round', () => {
     await userEvent.click(screen.getByRole('button', { name: /different song/i }));
     expect(onReroll).toHaveBeenCalledTimes(1);
   });
+
+  it('shows an error and offers to skip when a track is unavailable', async () => {
+    vi.mocked(startClip).mockImplementationOnce((_player, _device, _uri, _clip, cbs) => {
+      cbs?.onError?.('Region locked');
+      return () => {};
+    });
+    const onSkipUnavailable = vi.fn();
+    renderRound({ onSkipUnavailable });
+
+    await userEvent.click(screen.getByRole('button', { name: /play/i }));
+    expect(await screen.findByText(/can't be played/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /skip now/i }));
+    expect(onSkipUnavailable).toHaveBeenCalled();
+  });
 });

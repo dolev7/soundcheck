@@ -34,8 +34,8 @@ describe('fetchLikedTracks', () => {
 
     expect(pool.map((t) => t.id)).toEqual(['t1', 't2']);
     expect(mockGet).toHaveBeenCalledTimes(2);
-    expect(mockGet).toHaveBeenNthCalledWith(1, '/me/tracks?limit=50&offset=0');
-    expect(mockGet).toHaveBeenNthCalledWith(2, '/me/tracks?limit=50&offset=50');
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/me/tracks?limit=50&offset=0&market=from_token');
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/me/tracks?limit=50&offset=50&market=from_token');
   });
 
   it('filters unusable tracks and dedupes across pages (via buildPool)', async () => {
@@ -71,7 +71,10 @@ describe('fetchPlaylistTracks', () => {
 
     const pool = await fetchPlaylistTracks('abc123');
     expect(pool.map((t) => t.id)).toEqual(['t1']);
-    expect(mockGet).toHaveBeenNthCalledWith(1, '/playlists/abc123/tracks?limit=50&offset=0');
+    expect(mockGet).toHaveBeenNthCalledWith(
+      1,
+      '/playlists/abc123/tracks?limit=50&offset=0&market=from_token',
+    );
   });
 });
 

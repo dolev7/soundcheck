@@ -48,10 +48,15 @@ async function fetchAllPages<T>(
   return all;
 }
 
+// `market=from_token` scopes results to the user's country, so Spotify marks
+// region-unavailable tracks is_playable:false (and applies track relinking).
+// buildPool/normalizeTrack then drop those, keeping the pool playable.
+const MARKET = 'market=from_token';
+
 /** The "Liked Songs" pool. */
 export async function fetchLikedTracks(onProgress?: ProgressCallback): Promise<PoolTrack[]> {
   const items = await fetchAllPages<RawItem>(
-    (offset, limit) => `/me/tracks?limit=${limit}&offset=${offset}`,
+    (offset, limit) => `/me/tracks?limit=${limit}&offset=${offset}&${MARKET}`,
     onProgress,
   );
   return buildPool(items);
@@ -64,7 +69,7 @@ export async function fetchPlaylistTracks(
 ): Promise<PoolTrack[]> {
   const items = await fetchAllPages<RawItem>(
     (offset, limit) =>
-      `/playlists/${encodeURIComponent(playlistId)}/tracks?limit=${limit}&offset=${offset}`,
+      `/playlists/${encodeURIComponent(playlistId)}/tracks?limit=${limit}&offset=${offset}&${MARKET}`,
     onProgress,
   );
   return buildPool(items);
