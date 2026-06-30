@@ -1,0 +1,97 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+vi.mock('../spotify/library', () => ({
+  fetchPlaylists: vi.fn(),
+  fetchLikedTracks: vi.fn(),
+  fetchPlaylistTracks: vi.fn(),
+}));
+import { fetchPlaylists, fetchLikedTracks, fetchPlaylistTracks } from '../spotify/library';
+import { PlaylistPicker } from './PlaylistPicker';
+import type { PoolTrack } from '../game/pool';
+
+const mockPlaylists = vi.mocked(fetchPlaylists);
+const mockLiked = vi.mocked(fetchLikedTracks);
+const mockPlaylistTracks = vi.mocked(fetchPlaylistTracks);
+
+const track = (id: string, artistId: string, artistName: string): PoolTrack => ({
+  id,
+  name: `Song ${id}`,
+  uri: `spotify:track:${id}`,
+  artists: [{ id: artistId, name: artistName }],
+  year: 1990,
+  durationMs: 180000,
+});
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  mockPlaylists.mockResolvedValue([{ id: 'p1', name: 'Road Trip', trackCount: 2 }]);
+});
+
+describe('PlaylistPicker', () => {
+  it('defaults to Liked Songs and reports the built pool', async () => {
+    mockLiked.mockResolvedValue([track('t1', 'a1', 'Alpha'), track('t2', 'a2', 'Beta')]);
+    const onPoolLoaded = vi.fn();
+
+    render(<PlaylistPicker onPoolLoaded={onPoolLoaded} />);
+
+    // the user's playlists populate the dropdown alongside Liked Songs
+    await screen.findByRole('option', { name: /Road Trip/ });
+
+    await userEvent.click(screen.getByRole('button', { name: /load/i }));
+
+    await waitFor(() => expect(onPoolLoaded).toHaveBeenCalledTimes(1));
+    const loaded = onPoolLoaded.mock.calls[0][0];
+    expect(mockLiked).toHaveBeenCalled();
+    expect(loaded.source).toEqual({ kind: 'liked' });
+    expect(loaded.tracks).toHaveLength(2);
+    expect(loaded.artists).toHaveLength(2);
+  });
+
+  it('loads a chosen playlist by id', async () => {
+    mockPlaylistTracks.mockResolvedValue([track('t9', 'a9', 'Nine')]);
+    const onPoolLoaded = vi.fn();
+
+    render(<PlaylistPicker onPoolLoaded={onPoolLoaded} />);
+    await screen.findByRole('option', { name: /Road Trip/ });
+
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'p1');
+    await userEvent.click(screen.getByRole('button', { name: /load/i }));
+
+    await waitFor(() => expect(mockPlaylistTracks).toHaveBeenCalledWith('p1', expect.any(Function)));
+    const loaded = onPoolLoaded.mock.calls[0][0];
+    expect(loaded.source).toEqual({ kind: 'playlist', id: 'p1', name: 'Road Trip' });
+    expect(loaded.tracks).toHaveLength(1);
+  });
+
+  it('shows an error if the pool is empty', async () => {
+    mockLiked.mockResolvedValue([]);
+    const onPoolLoaded = vi.fn();
+
+    render(<PlaylistPicker onPoolLoaded={onPoolLoaded} />);
+    await screen.findByRole('option', { name: /Road Trip/ });
+    await userEvent.click(screen.getByRole('button', { name: /load/i }));
+
+    await screen.findByText(/no playable tracks/i);
+    expect(onPoolLoaded).not.toHaveBeenCalled();
+  });
+
+  it('shows load progress as "loaded / total" while loading', async () => {
+    let resolveFetch!: (tracks: PoolTrack[]) => void;
+    const pending = new Promise<PoolTrack[]>((resolve) => {
+      resolveFetch = resolve;
+    });
+    mockLiked.mockImplementation((onProgress?: (loaded: number, total: number) => void) => {
+      onProgress?.(2, 5);
+      return pending;
+    });
+
+    render(<PlaylistPicker onPoolLoaded={vi.fn()} />);
+    await screen.findByRole('option', { name: /Road Trip/ });
+    await userEvent.click(screen.getByRole('button', { name: /load/i }));
+
+    expect(await screen.findByText(/2\s*\/\s*5/)).toBeInTheDocument();
+    resolveFetch([track('t1', 'a1', 'Alpha')]);
+  });
+});
