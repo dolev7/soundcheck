@@ -67,7 +67,7 @@ describe('Round', () => {
     expect(screen.getByText('+50')).toBeInTheDocument(); // per-objective points in the breakdown
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
 
-    expect(onComplete).toHaveBeenCalledWith(100); // 50 artist + 25 song + 25 year
+    expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ score: 100 })); // 50+25+25
   });
 
   it('banks fewer artist points at a later tier', async () => {
@@ -80,7 +80,7 @@ describe('Round', () => {
     await userEvent.click(screen.getByRole('button', { name: /give up/i }));
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
 
-    expect(onComplete).toHaveBeenCalledWith(40); // ARTIST_TIER_POINTS[1]
+    expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ score: 40 })); // tier 1
   });
 
   it('Give up ends the round and reports the banked score', async () => {
@@ -91,7 +91,7 @@ describe('Round', () => {
     expect(screen.getByText(/Dancing Queen/)).toBeInTheDocument(); // reveal shows the answer
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
 
-    expect(onComplete).toHaveBeenCalledWith(0);
+    expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ score: 0 }));
   });
 
   it('shows a live countdown once the clip starts playing', async () => {

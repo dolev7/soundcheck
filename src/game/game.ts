@@ -29,3 +29,26 @@ export function advanceGame(game: GameState, roundScore: number): GameState {
   }
   return { round: game.round + 1, totalScore, status: 'playing' };
 }
+
+/** Per-round outcome, accumulated for the end-of-game recap + share card. */
+export interface RoundResult {
+  trackName: string;
+  artistNames: string;
+  score: number;
+  artistSolved: boolean;
+  songSolved: boolean;
+  yearSolved: boolean;
+}
+
+/**
+ * A Wordle-style shareable summary: a score header, one 🟩/⬛ row per round
+ * (artist / song / year), and the game URL.
+ */
+export function buildShareText(results: RoundResult[], total: number, url: string): string {
+  const grid = results
+    .map((r) =>
+      [r.artistSolved, r.songSolved, r.yearSolved].map((solved) => (solved ? '🟩' : '⬛')).join(''),
+    )
+    .join('\n');
+  return `SoundCheck 🎵 ${total} pts\n${grid}\n${url}`;
+}

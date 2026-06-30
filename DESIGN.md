@@ -145,7 +145,8 @@ src/
   game/
     pool.ts            pure: normalizeTrack, buildPool, distinctArtists, filterArtists/filterTracks, seededShuffle  (+ .test)
     round.ts           pure: per-objective tiered scoring, submitGuess/advanceTier/endRound, yearBonus, tierClip  (+ .test)
-    game.ts            pure: ROUNDS_PER_GAME, startGame, advanceGame (session totals)  (+ .test)
+    game.ts            pure: ROUNDS_PER_GAME, startGame, advanceGame, buildShareText, RoundResult  (+ .test)
+    bestScore.ts       localStorage personal best: loadBestScore, recordScore  (+ .test)
   components/
     Login.tsx          connect button / setup warning
     PremiumGate.tsx    upgrade prompt for non-Premium accounts
@@ -197,10 +198,10 @@ enables a shared leaderboard without a separate DB auth story.
 3. **One round, artist-only** — tier reveals, artist typeahead match, base
    scoring. ✅ **done**
 4. **Bonus layer** — song typeahead + year slider + tolerance scoring. ✅ **done**
-5. **Game loop + results** — N rounds, totals, `localStorage` best. 🟡 10-round
-   loop + running total + results screen **done**; `localStorage` best still TODO.
-6. **Polish** — highlight tier, streaks, share card; later: leaderboard, party
-   mode.
+5. **Game loop + results** — N rounds, totals, `localStorage` best. ✅ **done**
+   (10-round loop, running total, end-of-game recap + share card, personal best).
+6. **Polish** — highlight tier ✅, share card ✅; remaining: streaks, shared
+   leaderboard (needs a backend), party mode.
 
 ---
 

@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { RoundResult } from '../game/game';
 
-// Replace the real Round with a stub that exposes the track + both controls.
+// Replace the real Round with a stub that exposes the track + controls.
 vi.mock('./Round', () => ({
   Round: ({
     track,
@@ -12,14 +13,27 @@ vi.mock('./Round', () => ({
     onSkipUnavailable,
   }: {
     track: { id: string };
-    onComplete: (score: number) => void;
+    onComplete: (result: RoundResult) => void;
     onReroll?: () => void;
     canReroll?: boolean;
     onSkipUnavailable?: () => void;
   }) => (
     <div>
       <span data-testid="track">{track.id}</span>
-      <button onClick={() => onComplete(10)}>finish round</button>
+      <button
+        onClick={() =>
+          onComplete({
+            score: 10,
+            trackName: track.id,
+            artistNames: 'Artist',
+            artistSolved: true,
+            songSolved: false,
+            yearSolved: false,
+          })
+        }
+      >
+        finish round
+      </button>
       {canReroll && <button onClick={() => onReroll?.()}>reroll</button>}
       <button onClick={() => onSkipUnavailable?.()}>skip-unavailable</button>
     </div>
@@ -45,6 +59,8 @@ const pool: LoadedPool = {
   artists: [{ id: 'a0', name: 'Artist 0' }],
 };
 const player = {} as Spotify.Player;
+
+beforeEach(() => localStorage.clear()); // personal best persists otherwise
 
 describe('GameSession', () => {
   it('runs exactly ROUNDS_PER_GAME rounds, then shows results with the total', async () => {

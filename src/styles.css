@@ -470,6 +470,39 @@ select:disabled {
   font-variant-numeric: tabular-nums;
 }
 
+/* End-of-game recap (one row per round) */
+.recap {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  text-align: left;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.recap li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.recap-marks {
+  flex: none;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+}
+
+.recap-track {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
 /* How-to-play / scoring on the login screen */
 .rules {
   text-align: left;

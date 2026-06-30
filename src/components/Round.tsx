@@ -10,6 +10,7 @@ import {
   ARTIST_TIER_POINTS,
   type RoundState,
 } from '../game/round';
+import type { RoundResult } from '../game/game';
 import { startClip } from '../spotify/playback';
 import { ArtistTypeahead } from './ArtistTypeahead';
 import { SongTypeahead } from './SongTypeahead';
@@ -24,8 +25,8 @@ interface RoundProps {
   artists: Artist[];
   player: Spotify.Player;
   deviceId: string;
-  /** Called with the round's banked score when the player moves on. */
-  onComplete: (score: number) => void;
+  /** Called with the round's result (score + outcome) when the player moves on. */
+  onComplete: (result: RoundResult) => void;
   /** Swap in a different track for this same round (e.g. a silent/dud song). */
   onReroll?: () => void;
   /** Whether a re-roll is still allowed this round (limited per round). */
@@ -167,7 +168,19 @@ export function Round({
           </li>
         </ul>
         <div className="row">
-          <button className="primary" onClick={() => onComplete(round.score)}>
+          <button
+            className="primary"
+            onClick={() =>
+              onComplete({
+                trackName: round.track.name,
+                artistNames: credits,
+                score: round.score,
+                artistSolved,
+                songSolved,
+                yearSolved,
+              })
+            }
+          >
             Next
           </button>
         </div>
