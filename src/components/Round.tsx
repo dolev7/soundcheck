@@ -16,7 +16,6 @@ import { ArtistTypeahead } from './ArtistTypeahead';
 import { SongTypeahead } from './SongTypeahead';
 
 const LAST_TIER = ARTIST_TIER_POINTS.length - 1;
-const SKIP_UNAVAILABLE_DELAY_MS = 2500;
 
 interface RoundProps {
   track: PoolTrack;
@@ -31,8 +30,6 @@ interface RoundProps {
   onReroll?: () => void;
   /** Whether a re-roll is still allowed this round (limited per round). */
   canReroll?: boolean;
-  /** Skip the current track because it can't be played — uncapped, no penalty. */
-  onSkipUnavailable?: () => void;
 }
 
 /**
@@ -50,7 +47,6 @@ export function Round({
   onComplete,
   onReroll,
   canReroll = true,
-  onSkipUnavailable,
 }: RoundProps) {
   const [round, setRound] = useState<RoundState>(() => startRound(track));
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
@@ -58,35 +54,25 @@ export function Round({
   const [yearEnabled, setYearEnabled] = useState(false);
   const [year, setYear] = useState(2000);
   const [remaining, setRemaining] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const cancelRef = useRef<(() => void) | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const skipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function clearTick() {
     if (tickRef.current) clearInterval(tickRef.current);
     tickRef.current = null;
   }
 
-  function clearSkipTimer() {
-    if (skipTimerRef.current) clearTimeout(skipTimerRef.current);
-    skipTimerRef.current = null;
-  }
-
   function stopAudio() {
     cancelRef.current?.();
     cancelRef.current = null;
     clearTick();
-    clearSkipTimer();
     setRemaining(null);
-    setError(null);
   }
 
   useEffect(() => {
     return () => {
       cancelRef.current?.();
       clearTick();
-      clearSkipTimer();
     };
   }, []);
 
@@ -105,16 +91,6 @@ export function Round({
       onEnd: () => {
         clearTick();
         setRemaining(null);
-      },
-      onError: (message) => {
-        console.warn('[SoundCheck] playback error:', message);
-        clearTick();
-        setRemaining(null);
-        setError("This track can't be played here (region-locked or unavailable) — skipping…");
-        if (onSkipUnavailable) {
-          clearSkipTimer();
-          skipTimerRef.current = setTimeout(onSkipUnavailable, SKIP_UNAVAILABLE_DELAY_MS);
-        }
       },
     });
   }
@@ -137,11 +113,6 @@ export function Round({
   function handleGiveUp() {
     stopAudio();
     setRound(endRound);
-  }
-
-  function handleSkipNow() {
-    clearSkipTimer();
-    onSkipUnavailable?.();
   }
 
   const { artistSolved, songSolved, yearSolved } = round;
@@ -210,19 +181,6 @@ export function Round({
           </span>
         )}
       </div>
-
-      {error && (
-        <div className="warn">
-          {error}
-          {onSkipUnavailable && (
-            <div className="row">
-              <button className="ghost small" onClick={handleSkipNow}>
-                Skip now
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       <div className="objectives">
         {artistSolved ? (

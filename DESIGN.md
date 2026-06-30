@@ -228,9 +228,10 @@ enables a shared leaderboard without a separate DB auth story.
   re-roll that swaps the track without scoring it or advancing the round counter.
 - **Region-locked tracks.** The pool is fetched with `market=from_token`, so
   Spotify drops tracks unavailable in the user's country (and relinks where it
-  can). Any that still fail at play time (SDK `playback_error` or no playback
-  within ~6s) surface an error and **auto-skip** to another track — no score
-  penalty, and it doesn't consume the per-round re-roll.
+  can) — this is the real defense. A reactive "auto-skip on playback error"
+  (SDK `playback_error` / a start-timeout) was tried and **removed**: those
+  signals false-positived on perfectly playable tracks and skipped everything.
+  Anything that still won't play, the player skips manually via "Different song".
 
 ---
 
