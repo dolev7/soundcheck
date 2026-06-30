@@ -67,7 +67,8 @@ export async function createPlayer(name = 'SoundCheck'): Promise<PlayerHandle> {
           'Timed out after 15s waiting for the Spotify player to become ready. ' +
             'The browser likely could not initialize protected playback (EME/Widevine/DRM). ' +
             'Chrome and Edge are the most reliable; Firefox, Brave, Arc, and DRM-blocking ' +
-            'extensions (or "block third-party content") commonly prevent it.',
+            'extensions (or "block third-party content") commonly prevent it. ' +
+            'Mobile browsers are not supported at all — use a desktop browser.',
         ),
       );
     }, READY_TIMEOUT_MS);

@@ -7,6 +7,7 @@ import {
   YEAR_WINDOW,
 } from '../game/round';
 import { ROUNDS_PER_GAME } from '../game/game';
+import { isMobileBrowser } from '../util/platform';
 
 interface LoginProps {
   onLogin: () => void;
@@ -24,6 +25,14 @@ export function Login({ onLogin }: LoginProps) {
         Guess the artist from a few seconds of a song — the sooner you guess, the
         more you score.
       </p>
+
+      {isMobileBrowser() && (
+        <div className="warn">
+          <strong>Use a computer.</strong> Spotify's Web Playback SDK can't play
+          audio in mobile browsers, so SoundCheck needs a desktop browser (Chrome,
+          Edge, Firefox, or Safari on a computer).
+        </div>
+      )}
 
       {configured ? (
         <button className="primary" onClick={onLogin}>
