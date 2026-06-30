@@ -6,9 +6,20 @@ bonus points. Solo / async, fully client-side, Spotify **Premium** required.
 
 See [DESIGN.md](./DESIGN.md) for the full game design, scoring, and build phases.
 
-> **Phase 1 (this scaffold):** PKCE auth → Premium gate → Web Playback SDK boot
-> → stream a hardcoded track. This proves the riskiest part of the stack before
-> the game loop is built.
+## Live
+
+**https://dolev7.github.io/soundcheck/** — auto-deployed from `main` via GitHub
+Pages ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)).
+
+Two prerequisites for login to work on the deployed site:
+
+1. Add this redirect URI to the Spotify app
+   ([dashboard](https://developer.spotify.com/dashboard)):
+   `https://dolev7.github.io/soundcheck/callback`
+2. The Spotify app is in **Development mode**, so only the owner and up to ~25
+   manually-added users can log in. Opening it to everyone requires a Spotify
+   extended-quota request. (Anyone can load the page; only allowlisted Spotify
+   accounts can actually play.)
 
 ## Prerequisites
 
