@@ -6,6 +6,7 @@ import {
   fetchPlaylists,
   type PlaylistSummary,
 } from '../spotify/library';
+import { ROUNDS_PER_GAME } from '../game/game';
 
 export type PoolSource = { kind: 'liked' } | { kind: 'playlist'; id: string; name: string };
 
@@ -64,8 +65,14 @@ export function PlaylistPicker({ onPoolLoaded }: PlaylistPickerProps) {
         tracks = await fetchPlaylistTracks(selected, onProgress);
       }
 
-      if (tracks.length === 0) {
-        setError('That source has no playable tracks. Try another playlist.');
+      if (tracks.length < ROUNDS_PER_GAME) {
+        setError(
+          tracks.length === 0
+            ? 'That source has no playable tracks. Try another.'
+            : `That source has only ${tracks.length} playable song${
+                tracks.length === 1 ? '' : 's'
+              } — a game needs at least ${ROUNDS_PER_GAME}. Pick a bigger one.`,
+        );
         return;
       }
 

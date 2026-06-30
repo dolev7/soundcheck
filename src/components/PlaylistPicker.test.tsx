@@ -24,14 +24,17 @@ const track = (id: string, artistId: string, artistName: string): PoolTrack => (
   durationMs: 180000,
 });
 
+// A full game needs at least 10 songs, so most tests load 10.
+const tenTracks = Array.from({ length: 10 }, (_, i) => track(`t${i}`, `a${i}`, `Artist ${i}`));
+
 beforeEach(() => {
   vi.resetAllMocks();
-  mockPlaylists.mockResolvedValue([{ id: 'p1', name: 'Road Trip', trackCount: 2 }]);
+  mockPlaylists.mockResolvedValue([{ id: 'p1', name: 'Road Trip', trackCount: 12 }]);
 });
 
 describe('PlaylistPicker', () => {
   it('defaults to Liked Songs and reports the built pool', async () => {
-    mockLiked.mockResolvedValue([track('t1', 'a1', 'Alpha'), track('t2', 'a2', 'Beta')]);
+    mockLiked.mockResolvedValue(tenTracks);
     const onPoolLoaded = vi.fn();
 
     render(<PlaylistPicker onPoolLoaded={onPoolLoaded} />);
@@ -45,12 +48,12 @@ describe('PlaylistPicker', () => {
     const loaded = onPoolLoaded.mock.calls[0][0];
     expect(mockLiked).toHaveBeenCalled();
     expect(loaded.source).toEqual({ kind: 'liked' });
-    expect(loaded.tracks).toHaveLength(2);
-    expect(loaded.artists).toHaveLength(2);
+    expect(loaded.tracks).toHaveLength(10);
+    expect(loaded.artists).toHaveLength(10);
   });
 
   it('loads a chosen playlist by id', async () => {
-    mockPlaylistTracks.mockResolvedValue([track('t9', 'a9', 'Nine')]);
+    mockPlaylistTracks.mockResolvedValue(tenTracks);
     const onPoolLoaded = vi.fn();
 
     render(<PlaylistPicker onPoolLoaded={onPoolLoaded} />);
@@ -62,7 +65,7 @@ describe('PlaylistPicker', () => {
     await waitFor(() => expect(mockPlaylistTracks).toHaveBeenCalledWith('p1', expect.any(Function)));
     const loaded = onPoolLoaded.mock.calls[0][0];
     expect(loaded.source).toEqual({ kind: 'playlist', id: 'p1', name: 'Road Trip' });
-    expect(loaded.tracks).toHaveLength(1);
+    expect(loaded.tracks).toHaveLength(10);
   });
 
   it('shows an error if the pool is empty', async () => {
@@ -74,6 +77,18 @@ describe('PlaylistPicker', () => {
     await userEvent.click(screen.getByRole('button', { name: /load/i }));
 
     await screen.findByText(/no playable tracks/i);
+    expect(onPoolLoaded).not.toHaveBeenCalled();
+  });
+
+  it('rejects a source with fewer than 10 playable songs', async () => {
+    mockLiked.mockResolvedValue([track('t1', 'a1', 'A'), track('t2', 'a2', 'B')]);
+    const onPoolLoaded = vi.fn();
+
+    render(<PlaylistPicker onPoolLoaded={onPoolLoaded} />);
+    await screen.findByRole('option', { name: /Road Trip/ });
+    await userEvent.click(screen.getByRole('button', { name: /load/i }));
+
+    await screen.findByText(/at least 10/i);
     expect(onPoolLoaded).not.toHaveBeenCalled();
   });
 
@@ -92,6 +107,6 @@ describe('PlaylistPicker', () => {
     await userEvent.click(screen.getByRole('button', { name: /load/i }));
 
     expect(await screen.findByText(/2\s*\/\s*5/)).toBeInTheDocument();
-    resolveFetch([track('t1', 'a1', 'Alpha')]);
+    resolveFetch(tenTracks);
   });
 });

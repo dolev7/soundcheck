@@ -117,8 +117,11 @@ Solo/async means **no mandatory backend**. Fully client-side is viable.
 - **Premium gate:** `GET /me` → require `product === "premium"`, else show an
   upgrade prompt.
 - **Pool build:** paginate `GET /me/tracks` (Liked Songs) or
-  `GET /playlists/{id}/tracks`; filter null/local/unplayable tracks; dedupe by
-  ID; shuffle. Typeahead candidates = the full loaded pool.
+  `GET /playlists/{id}/tracks` (with `market=from_token`); filter
+  null/local/unplayable tracks; **dedupe by track ID**; shuffle. A source must
+  yield **≥ `ROUNDS_PER_GAME` (10)** playable tracks or it's rejected. Because
+  the pool is deduped and the game walks it in order, a game's rounds are
+  distinct songs. Typeahead candidates = the full loaded pool.
 - **Leaderboard:** start with a `localStorage` personal best; add a thin
   serverless DB (e.g. Supabase) only when a shared async board is wanted.
 

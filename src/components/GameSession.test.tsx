@@ -74,6 +74,17 @@ describe('GameSession', () => {
     expect(screen.queryByRole('button', { name: /reroll/i })).toBeNull();
   });
 
+  it('plays a different track each round (pool is deduped + walked in order)', async () => {
+    render(<GameSession pool={pool} player={player} deviceId="dev" />);
+
+    const seen = new Set<string>();
+    for (let i = 0; i < 3; i++) {
+      seen.add(screen.getByTestId('track').textContent ?? '');
+      await userEvent.click(screen.getByRole('button', { name: /finish round/i }));
+    }
+    expect(seen.size).toBe(3); // three rounds, three distinct tracks
+  });
+
   it('skips an unavailable track without consuming the re-roll', async () => {
     render(<GameSession pool={pool} player={player} deviceId="dev" />);
 
