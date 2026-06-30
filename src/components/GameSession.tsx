@@ -3,6 +3,7 @@ import {
   advanceGame,
   startGame,
   buildShareText,
+  roundMarks,
   ROUNDS_PER_GAME,
   type RoundResult,
 } from '../game/game';
@@ -89,11 +90,7 @@ export function GameSession({ pool, player, deviceId }: GameSessionProps) {
         <ul className="recap">
           {results.map((r, i) => (
             <li key={i}>
-              <span className="recap-marks">
-                {r.artistSolved ? '🟩' : '⬛'}
-                {r.songSolved ? '🟩' : '⬛'}
-                {r.yearSolved ? '🟩' : '⬛'}
-              </span>
+              <span className="recap-marks">{roundMarks(r).join('')}</span>
               <span className="recap-track" dir="auto">
                 {r.trackName}
               </span>
@@ -101,6 +98,7 @@ export function GameSession({ pool, player, deviceId }: GameSessionProps) {
             </li>
           ))}
         </ul>
+        <p className="fine">🟩 exact · 🟨 close year · ⬛ missed</p>
 
         <div className="row">
           <button className="primary" onClick={playAgain}>

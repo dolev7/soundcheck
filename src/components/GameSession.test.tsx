@@ -27,6 +27,7 @@ vi.mock('./Round', () => ({
             artistSolved: true,
             songSolved: false,
             yearSolved: false,
+            yearPoints: 0,
           })
         }
       >

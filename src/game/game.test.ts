@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { startGame, advanceGame, buildShareText, ROUNDS_PER_GAME, type RoundResult } from './game';
+import {
+  startGame,
+  advanceGame,
+  buildShareText,
+  roundMarks,
+  ROUNDS_PER_GAME,
+  type RoundResult,
+} from './game';
 
 describe('game session', () => {
   it('defaults to a 10-round game', () => {
@@ -33,25 +40,41 @@ describe('game session', () => {
   });
 });
 
-describe('buildShareText', () => {
-  const r = (a: boolean, s: boolean, y: boolean, score: number): RoundResult => ({
-    trackName: 'x',
-    artistNames: 'y',
-    score,
-    artistSolved: a,
-    songSolved: s,
-    yearSolved: y,
+const baseResult: RoundResult = {
+  trackName: 'x',
+  artistNames: 'y',
+  score: 0,
+  artistSolved: false,
+  songSolved: false,
+  yearSolved: false,
+  yearPoints: 0,
+};
+
+describe('roundMarks', () => {
+  it('marks solved artist/song green, unsolved black', () => {
+    expect(roundMarks({ ...baseResult, artistSolved: true })[0]).toBe('🟩');
+    expect(roundMarks(baseResult)[0]).toBe('⬛');
+    expect(roundMarks({ ...baseResult, songSolved: true })[1]).toBe('🟩');
   });
 
-  it('renders a score header, an emoji grid, and the url', () => {
-    const text = buildShareText(
-      [r(true, true, true, 100), r(true, false, false, 50)],
-      150,
-      'https://example.test/',
-    );
-    expect(text).toContain('150 pts');
+  it('marks the year green=exact, yellow=close, black=wide-miss/none', () => {
+    expect(roundMarks({ ...baseResult, yearSolved: true, yearPoints: 25 })[2]).toBe('🟩');
+    expect(roundMarks({ ...baseResult, yearSolved: true, yearPoints: 15 })[2]).toBe('🟨');
+    expect(roundMarks({ ...baseResult, yearSolved: true, yearPoints: 0 })[2]).toBe('⬛');
+    expect(roundMarks({ ...baseResult, yearSolved: false })[2]).toBe('⬛');
+  });
+});
+
+describe('buildShareText', () => {
+  it('renders a score header, an emoji grid (with year accuracy), and the url', () => {
+    const results: RoundResult[] = [
+      { ...baseResult, score: 100, artistSolved: true, songSolved: true, yearSolved: true, yearPoints: 25 },
+      { ...baseResult, score: 55, artistSolved: true, yearSolved: true, yearPoints: 15 },
+    ];
+    const text = buildShareText(results, 155, 'https://example.test/');
+    expect(text).toContain('155 pts');
     expect(text).toContain('🟩🟩🟩');
-    expect(text).toContain('🟩⬛⬛');
+    expect(text).toContain('🟩⬛🟨'); // artist hit, song missed, year close
     expect(text).toContain('https://example.test/');
   });
 });

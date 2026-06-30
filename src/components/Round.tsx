@@ -149,6 +149,7 @@ export function Round({
                 artistSolved,
                 songSolved,
                 yearSolved,
+                yearPoints: round.yearPoints ?? 0,
               })
             }
           >
