@@ -3,12 +3,13 @@
 
 export interface RawArtist {
   id: string | null;
-  name: string;
+  // Spotify occasionally returns null names (relinked/placeholder entries).
+  name: string | null;
 }
 
 export interface RawTrack {
   id: string | null;
-  name: string;
+  name: string | null;
   uri: string;
   is_local?: boolean;
   is_playable?: boolean;
@@ -55,11 +56,18 @@ export function extractYear(releaseDate?: string): number | null {
  */
 export function normalizeTrack(track: RawTrack): PoolTrack | null {
   if (!track.id) return null;
+  if (typeof track.name !== 'string' || track.name.length === 0) return null;
   if (track.is_local) return null;
   if (track.is_playable === false) return null;
 
   const artists: Artist[] = track.artists
-    .filter((a): a is RawArtist & { id: string } => typeof a.id === 'string' && a.id.length > 0)
+    .filter(
+      (a): a is RawArtist & { id: string; name: string } =>
+        typeof a.id === 'string' &&
+        a.id.length > 0 &&
+        typeof a.name === 'string' &&
+        a.name.length > 0,
+    )
     .map((a) => ({ id: a.id, name: a.name }));
 
   if (artists.length === 0) return null;

@@ -90,6 +90,22 @@ describe('normalizeTrack', () => {
     expect(normalizeTrack(rawTrack({ artists: [{ id: null, name: 'Unknown' }] }))).toBeNull();
   });
 
+  it('drops artists with a null/empty name but keeps the named ones', () => {
+    const t = normalizeTrack(
+      rawTrack({
+        artists: [
+          { id: 'a1', name: null },
+          { id: 'a2', name: 'Real Artist' },
+        ],
+      }),
+    );
+    expect(t?.artists).toEqual([{ id: 'a2', name: 'Real Artist' }]);
+  });
+
+  it('drops a track with no usable name', () => {
+    expect(normalizeTrack(rawTrack({ name: null }))).toBeNull();
+  });
+
   it('sets year to null when the release date is unusable', () => {
     const t = normalizeTrack(rawTrack({ album: { release_date: '' } }));
     expect(t?.year).toBeNull();
