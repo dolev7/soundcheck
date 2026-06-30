@@ -21,9 +21,9 @@ const INTRO_MS = [2_000, 5_000, 10_000];
 
 // Year scoring (not tiered): exact is the top bonus; otherwise points slide
 // linearly from YEAR_NEAR (1 year off) down to 0 at a YEAR_WINDOW-year gap.
-const YEAR_EXACT = 25;
+export const YEAR_EXACT = 25;
 const YEAR_NEAR = 15;
-const YEAR_WINDOW = 10;
+export const YEAR_WINDOW = 10;
 
 export type RoundStatus = 'guessing' | 'done';
 

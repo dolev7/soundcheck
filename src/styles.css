@@ -469,3 +469,65 @@ select:disabled {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* How-to-play / scoring on the login screen */
+.rules {
+  text-align: left;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.rules h2 {
+  font-size: 1.05rem;
+  margin: 0 0 10px;
+}
+
+.rules h3 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 20px 0 8px;
+}
+
+.rules ul {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.6;
+}
+
+.rules li {
+  margin-bottom: 8px;
+}
+
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-table th,
+.score-table td {
+  padding: 7px 8px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.score-table thead th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.score-table tbody td {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.score-table th:first-child,
+.score-table td:first-child {
+  text-align: left;
+  color: var(--muted);
+  font-weight: 600;
+}
