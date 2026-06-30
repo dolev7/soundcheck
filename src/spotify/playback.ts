@@ -128,11 +128,20 @@ export async function playTrack(
   uri: string,
   positionMs = 0,
 ): Promise<void> {
-  const res = await spotifyFetch(`/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ uris: [uri], position_ms: positionMs }),
-  });
+  const play = () =>
+    spotifyFetch(`/me/player/play?device_id=${encodeURIComponent(deviceId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uris: [uri], position_ms: positionMs }),
+    });
+
+  let res = await play();
+  // 404 = "device not found": our SDK device went inactive (backgrounded tab,
+  // network blip). Re-activate it and retry the play once.
+  if (res.status === 404) {
+    await transferPlayback(deviceId, false).catch(() => {});
+    res = await play();
+  }
   if (!res.ok && res.status !== 204) {
     throw new Error(`playTrack failed: ${res.status}`);
   }
