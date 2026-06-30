@@ -28,9 +28,9 @@ export function Login({ onLogin }: LoginProps) {
 
       {isMobileBrowser() && (
         <div className="warn">
-          <strong>Use a computer.</strong> Spotify's Web Playback SDK can't play
-          audio in mobile browsers, so SoundCheck needs a desktop browser (Chrome,
-          Edge, Firefox, or Safari on a computer).
+          <strong>On a phone?</strong> Tap ▶ to start each clip — mobile browsers
+          block audio until you do. Works best in <strong>Chrome</strong>; iOS
+          Safari can be finicky, and a desktop browser is the most reliable.
         </div>
       )}
 

@@ -212,11 +212,12 @@ enables a shared leaderboard without a separate DB auth story.
   shows on "SoundCheck Player" — selecting the SoundCheck Player / "This computer"
   device once routes audio to the browser. Every in-game play call targets our
   device id explicitly, so it stays put for the rest of the session.
-- **Desktop only.** Spotify's Web Playback SDK does not work in mobile browsers
-  (it can't create a playback device), so the app shows a "use a computer" notice
-  when a mobile user-agent is detected. The only way to support mobile would be
-  remote-controlling the user's Spotify app via Connect (`PUT /me/player/play`
-  against their active device) — a different architecture, not built.
+- **Mobile works, with caveats.** The Web Playback SDK *does* support mobile
+  browsers (Chrome/Firefox/Safari, Android + iOS), but audio is blocked until the
+  user triggers it inside a gesture — so `startClip` calls `player.activateElement()`
+  on the Play tap. A mobile-UA notice nudges the user to tap. Chrome mobile is the
+  most reliable; iOS Safari is the most restrictive (it flags server-initiated
+  playback as autoplay). Desktop remains the smoothest experience.
 - **Premium only.** Non-Premium users are gated out at `/me`.
 - **Highlight is a heuristic**, not a real chorus detector (see §4).
 - **Silent / long intros.** Clips start at 0:00 and some tracks open with silence

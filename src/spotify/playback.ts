@@ -67,8 +67,7 @@ export async function createPlayer(name = 'SoundCheck'): Promise<PlayerHandle> {
           'Timed out after 15s waiting for the Spotify player to become ready. ' +
             'The browser likely could not initialize protected playback (EME/Widevine/DRM). ' +
             'Chrome and Edge are the most reliable; Firefox, Brave, Arc, and DRM-blocking ' +
-            'extensions (or "block third-party content") commonly prevent it. ' +
-            'Mobile browsers are not supported at all — use a desktop browser.',
+            'extensions (or "block third-party content") commonly prevent it.',
         ),
       );
     }, READY_TIMEOUT_MS);
@@ -168,6 +167,13 @@ export function startClip(
   clip: TierClip,
   callbacks?: ClipCallbacks,
 ): () => void {
+  // Mobile browsers block audio until it's activated inside a user gesture.
+  // startClip runs synchronously inside the Play-button click, so unlock it here
+  // (no-op on SDK builds without the method / on desktop where it isn't needed).
+  void (player as unknown as { activateElement?: () => Promise<unknown> })
+    .activateElement?.()
+    ?.catch(() => {});
+
   let cancelled = false;
   let armed = false;
   let pauseTimer: ReturnType<typeof setTimeout> | null = null;
