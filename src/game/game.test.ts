@@ -13,8 +13,13 @@ describe('game session', () => {
     expect(ROUNDS_PER_GAME).toBe(10);
   });
 
-  it('starts at round 1 with score 0, playing', () => {
-    expect(startGame()).toEqual({ round: 1, totalScore: 0, status: 'playing' });
+  it('starts at round 1 with score 0, playing (default length)', () => {
+    expect(startGame()).toEqual({
+      round: 1,
+      totalScore: 0,
+      status: 'playing',
+      totalRounds: ROUNDS_PER_GAME,
+    });
   });
 
   it('accumulates score and advances the round', () => {
@@ -22,6 +27,7 @@ describe('game session', () => {
       round: 2,
       totalScore: 100,
       status: 'playing',
+      totalRounds: ROUNDS_PER_GAME,
     });
   });
 
@@ -31,6 +37,18 @@ describe('game session', () => {
     expect(g.status).toBe('finished');
     expect(g.round).toBe(ROUNDS_PER_GAME);
     expect(g.totalScore).toBe(10 * ROUNDS_PER_GAME);
+  });
+
+  it('respects a custom round count', () => {
+    let g = startGame(3);
+    expect(g.totalRounds).toBe(3);
+    g = advanceGame(g, 10); // → round 2
+    g = advanceGame(g, 10); // → round 3
+    expect(g.status).toBe('playing');
+    g = advanceGame(g, 10); // → finished at 3
+    expect(g.status).toBe('finished');
+    expect(g.round).toBe(3);
+    expect(g.totalScore).toBe(30);
   });
 
   it('is a no-op once finished', () => {

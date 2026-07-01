@@ -6,7 +6,7 @@ import {
   fetchPlaylists,
   type PlaylistSummary,
 } from '../spotify/library';
-import { ROUNDS_PER_GAME } from '../game/game';
+import { ROUND_OPTIONS, ROUNDS_PER_GAME } from '../game/game';
 
 export type PoolSource = { kind: 'liked' } | { kind: 'playlist'; id: string; name: string };
 
@@ -16,6 +16,8 @@ export interface LoadedPool {
   tracks: PoolTrack[];
   /** Distinct artists across the pool — the artist typeahead list. */
   artists: Artist[];
+  /** How many rounds the player chose for this game. */
+  rounds: number;
 }
 
 interface PlaylistPickerProps {
@@ -27,6 +29,7 @@ const LIKED_VALUE = 'liked';
 export function PlaylistPicker({ onPoolLoaded }: PlaylistPickerProps) {
   const [playlists, setPlaylists] = useState<PlaylistSummary[]>([]);
   const [selected, setSelected] = useState<string>(LIKED_VALUE);
+  const [rounds, setRounds] = useState<number>(ROUNDS_PER_GAME);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingPool, setLoadingPool] = useState(false);
   const [progress, setProgress] = useState<{ loaded: number; total: number } | null>(null);
@@ -65,19 +68,19 @@ export function PlaylistPicker({ onPoolLoaded }: PlaylistPickerProps) {
         tracks = await fetchPlaylistTracks(selected, onProgress);
       }
 
-      if (tracks.length < ROUNDS_PER_GAME) {
+      if (tracks.length < rounds) {
         setError(
           tracks.length === 0
             ? 'That source has no playable tracks. Try another.'
             : `That source has only ${tracks.length} playable song${
                 tracks.length === 1 ? '' : 's'
-              } — a game needs at least ${ROUNDS_PER_GAME}. Pick a bigger one.`,
+              } — this game needs at least ${rounds}. Pick a bigger source or fewer rounds.`,
         );
         return;
       }
 
       const shuffled = seededShuffle(tracks, Date.now());
-      onPoolLoaded({ source, tracks: shuffled, artists: distinctArtists(shuffled) });
+      onPoolLoaded({ source, tracks: shuffled, artists: distinctArtists(shuffled), rounds });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -106,6 +109,21 @@ export function PlaylistPicker({ onPoolLoaded }: PlaylistPickerProps) {
           {playlists.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name} ({p.trackCount})
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="field">
+        <span className="field-label">Rounds</span>
+        <select
+          value={rounds}
+          onChange={(e) => setRounds(Number(e.target.value))}
+          disabled={busy}
+        >
+          {ROUND_OPTIONS.map((n) => (
+            <option key={n} value={n}>
+              {n} rounds
             </option>
           ))}
         </select>

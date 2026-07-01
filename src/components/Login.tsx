@@ -6,7 +6,7 @@ import {
   YEAR_EXACT,
   YEAR_WINDOW,
 } from '../game/round';
-import { ROUNDS_PER_GAME } from '../game/game';
+import { ROUND_OPTIONS } from '../game/game';
 import { isMobileBrowser } from '../util/platform';
 
 interface LoginProps {
@@ -55,9 +55,10 @@ export function Login({ onLogin }: LoginProps) {
         <h2>How to play</h2>
         <ul>
           <li>
-            A game is <strong>{ROUNDS_PER_GAME} rounds</strong>. Each round a clip
-            plays — guess the <strong>artist</strong>, and (optionally) the exact{' '}
-            <strong>song</strong> and the <strong>year</strong>.
+            A game is <strong>{ROUND_OPTIONS.join(', ')} rounds</strong> (you choose
+            at the start). Each round a clip plays — guess the{' '}
+            <strong>artist</strong>, and (optionally) the exact <strong>song</strong>{' '}
+            and the <strong>year</strong>.
           </li>
           <li>
             <strong>Lock in</strong> banks points for whatever you got right and

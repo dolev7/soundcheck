@@ -59,13 +59,30 @@ describe('PlaylistPicker', () => {
     render(<PlaylistPicker onPoolLoaded={onPoolLoaded} />);
     await screen.findByRole('option', { name: /Road Trip/ });
 
-    await userEvent.selectOptions(screen.getByRole('combobox'), 'p1');
+    await userEvent.selectOptions(screen.getByLabelText('Source'), 'p1');
     await userEvent.click(screen.getByRole('button', { name: /load/i }));
 
     await waitFor(() => expect(mockPlaylistTracks).toHaveBeenCalledWith('p1', expect.any(Function)));
     const loaded = onPoolLoaded.mock.calls[0][0];
     expect(loaded.source).toEqual({ kind: 'playlist', id: 'p1', name: 'Road Trip' });
     expect(loaded.tracks).toHaveLength(10);
+  });
+
+  it('allows a smaller source when fewer rounds are chosen', async () => {
+    const fiveTracks = Array.from({ length: 5 }, (_, i) => track(`t${i}`, `a${i}`, `Artist ${i}`));
+    mockLiked.mockResolvedValue(fiveTracks);
+    const onPoolLoaded = vi.fn();
+
+    render(<PlaylistPicker onPoolLoaded={onPoolLoaded} />);
+    await screen.findByRole('option', { name: /Road Trip/ });
+
+    await userEvent.selectOptions(screen.getByLabelText('Rounds'), '3');
+    await userEvent.click(screen.getByRole('button', { name: /load/i }));
+
+    await waitFor(() => expect(onPoolLoaded).toHaveBeenCalled());
+    const loaded = onPoolLoaded.mock.calls[0][0];
+    expect(loaded.rounds).toBe(3);
+    expect(loaded.tracks).toHaveLength(5);
   });
 
   it('shows an error if the pool is empty', async () => {

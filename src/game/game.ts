@@ -3,33 +3,37 @@
 
 import { YEAR_EXACT } from './round';
 
-/** How many songs make up one game. */
+/** Default game length. */
 export const ROUNDS_PER_GAME = 10;
+/** Selectable game lengths (rounds-per-game dropdown). */
+export const ROUND_OPTIONS = [3, 5, 10] as const;
 
 export type GameStatus = 'playing' | 'finished';
 
 export interface GameState {
-  /** 1-based current round, 1..ROUNDS_PER_GAME. */
+  /** 1-based current round, 1..totalRounds. */
   round: number;
   totalScore: number;
   status: GameStatus;
+  /** How many rounds this game runs for. */
+  totalRounds: number;
 }
 
-export function startGame(): GameState {
-  return { round: 1, totalScore: 0, status: 'playing' };
+export function startGame(totalRounds: number = ROUNDS_PER_GAME): GameState {
+  return { round: 1, totalScore: 0, status: 'playing', totalRounds };
 }
 
 /**
  * Bank a finished round's score and move on. After the last round the game is
- * marked finished (round stays at ROUNDS_PER_GAME). A no-op once finished.
+ * marked finished (round stays at totalRounds). A no-op once finished.
  */
 export function advanceGame(game: GameState, roundScore: number): GameState {
   if (game.status !== 'playing') return game;
   const totalScore = game.totalScore + roundScore;
-  if (game.round >= ROUNDS_PER_GAME) {
+  if (game.round >= game.totalRounds) {
     return { ...game, totalScore, status: 'finished' };
   }
-  return { round: game.round + 1, totalScore, status: 'playing' };
+  return { ...game, round: game.round + 1, totalScore };
 }
 
 /** Per-round outcome, accumulated for the end-of-game recap + share card. */

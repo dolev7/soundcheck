@@ -4,7 +4,6 @@ import {
   startGame,
   buildShareText,
   roundMarks,
-  ROUNDS_PER_GAME,
   type RoundResult,
 } from '../game/game';
 import { recordScore } from '../game/bestScore';
@@ -26,7 +25,7 @@ const MAX_REROLLS_PER_ROUND = 1;
  * track cursor) that hands its result back via onComplete.
  */
 export function GameSession({ pool, player, deviceId }: GameSessionProps) {
-  const [game, setGame] = useState(startGame);
+  const [game, setGame] = useState(() => startGame(pool.rounds));
   const [cursor, setCursor] = useState(0);
   const [rerollsThisRound, setRerollsThisRound] = useState(0);
   const [results, setResults] = useState<RoundResult[]>([]);
@@ -53,7 +52,7 @@ export function GameSession({ pool, player, deviceId }: GameSessionProps) {
   }
 
   function playAgain() {
-    setGame(startGame());
+    setGame(startGame(pool.rounds));
     setResults([]);
     setBest(null);
     setCopied(false);
@@ -82,7 +81,7 @@ export function GameSession({ pool, player, deviceId }: GameSessionProps) {
         <h2>Game over</h2>
         <div className="score">{game.totalScore} points</div>
         <p className="fine">
-          over {ROUNDS_PER_GAME} songs
+          over {game.totalRounds} songs
           {best &&
             (best.isNewBest ? ' · 🎉 new personal best!' : ` · personal best ${best.best}`)}
         </p>
@@ -118,7 +117,7 @@ export function GameSession({ pool, player, deviceId }: GameSessionProps) {
     <div className="game">
       <div className="game-header">
         <span>
-          Round {game.round} / {ROUNDS_PER_GAME}
+          Round {game.round} / {game.totalRounds}
         </span>
         <span className="game-score">{game.totalScore} pts</span>
       </div>

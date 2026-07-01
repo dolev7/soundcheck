@@ -55,6 +55,7 @@ const pool: LoadedPool = {
   source: { kind: 'liked' },
   tracks: Array.from({ length: 30 }, (_, i) => mk(i)),
   artists: [{ id: 'a0', name: 'Artist 0' }],
+  rounds: ROUNDS_PER_GAME,
 };
 const player = {} as Spotify.Player;
 
