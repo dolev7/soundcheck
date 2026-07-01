@@ -54,6 +54,7 @@ export function Round({
   const [yearTouched, setYearTouched] = useState(false);
   const [year, setYear] = useState(2000);
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
   const cancelRef = useRef<(() => void) | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -67,6 +68,7 @@ export function Round({
     cancelRef.current = null;
     clearTick();
     setRemaining(null);
+    setFeedback(null);
   }
 
   useEffect(() => {
@@ -96,13 +98,24 @@ export function Round({
   }
 
   function handleSubmit() {
-    setRound((r) =>
-      submitGuess(r, {
-        artistId: selectedArtist?.id,
-        trackId: selectedSong?.id,
-        year: yearTouched ? year : null,
-      }),
-    );
+    const artistWrong =
+      !round.artistSolved &&
+      selectedArtist != null &&
+      !round.track.artists.some((a) => a.id === selectedArtist.id);
+    const songWrong =
+      !round.songSolved && selectedSong != null && selectedSong.id !== round.track.id;
+
+    const next = submitGuess(round, {
+      artistId: selectedArtist?.id,
+      trackId: selectedSong?.id,
+      year: yearTouched ? year : null,
+    });
+    stopAudio();
+    setRound(next);
+    // Tell the player they missed before the next (longer) clip loads.
+    if ((artistWrong || songWrong) && next.status === 'guessing') {
+      setFeedback("❌ Not quite — here's a longer clip.");
+    }
   }
 
   function handleMoreAudio() {
@@ -183,6 +196,8 @@ export function Round({
         )}
       </div>
 
+      {feedback && <div className="warn">{feedback}</div>}
+
       <div className="objectives">
         {artistSolved ? (
           <div className="solved" dir="auto">
@@ -212,7 +227,7 @@ export function Round({
                   Year: <span className="year-value">{year}</span>
                 </>
               ) : (
-                'Year — drag the slider to guess (optional)'
+                'Year — drag the slider to guess'
               )}
             </div>
             <input

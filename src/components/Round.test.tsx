@@ -94,6 +94,20 @@ describe('Round', () => {
     expect(onComplete).toHaveBeenCalledWith(expect.objectContaining({ score: 0 }));
   });
 
+  it('flags a wrong guess and advances to the next clip', async () => {
+    renderRound();
+    expect(screen.getByText(/2s/)).toBeInTheDocument(); // tier 0
+
+    // Track is "Dancing Queen" by ABBA; guessing Queen is wrong.
+    await userEvent.type(screen.getByLabelText('Guess the artist'), 'queen');
+    await userEvent.click(await screen.findByRole('button', { name: 'Queen' }));
+    await userEvent.click(screen.getByRole('button', { name: /lock in/i }));
+
+    expect(screen.getByText(/not quite/i)).toBeInTheDocument(); // wrong indication
+    expect(screen.getByText(/5s/)).toBeInTheDocument(); // advanced to the next clip
+    expect(screen.queryByRole('button', { name: /next/i })).toBeNull(); // round not over
+  });
+
   it('shows a live countdown once the clip starts playing', async () => {
     vi.mocked(startClip).mockImplementationOnce((_player, _device, _uri, _clip, cbs) => {
       cbs?.onStart?.();
