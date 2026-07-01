@@ -60,7 +60,7 @@ describe('Round', () => {
     await guessArtist();
     await userEvent.type(screen.getByLabelText('Guess the song'), 'dancing');
     await userEvent.click(await screen.findByRole('button', { name: /Dancing Queen/ }));
-    await userEvent.click(screen.getByLabelText(/guess the year/i));
+    // Touching the year slider opts into a year guess (no checkbox anymore).
     fireEvent.change(screen.getByLabelText('Year'), { target: { value: String(track.year) } });
 
     await userEvent.click(screen.getByRole('button', { name: /lock in/i }));

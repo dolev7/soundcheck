@@ -409,25 +409,20 @@ select:disabled {
   color: var(--muted);
 }
 
-.year-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  color: var(--text);
-  cursor: pointer;
+.year-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
 }
 
-.year-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.year-row input[type='range'] {
-  flex: 1;
+.year-block input[type='range'] {
+  width: 100%;
   accent-color: var(--accent);
+}
+
+/* Grayed until the player touches it, meaning "no year guess this round". */
+.year-untouched {
+  opacity: 0.5;
 }
 
 .year-value {

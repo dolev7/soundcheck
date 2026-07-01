@@ -51,7 +51,7 @@ export function Round({
   const [round, setRound] = useState<RoundState>(() => startRound(track));
   const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
   const [selectedSong, setSelectedSong] = useState<PoolTrack | null>(null);
-  const [yearEnabled, setYearEnabled] = useState(false);
+  const [yearTouched, setYearTouched] = useState(false);
   const [year, setYear] = useState(2000);
   const [remaining, setRemaining] = useState<number | null>(null);
   const cancelRef = useRef<(() => void) | null>(null);
@@ -100,7 +100,7 @@ export function Round({
       submitGuess(r, {
         artistId: selectedArtist?.id,
         trackId: selectedSong?.id,
-        year: yearEnabled ? year : null,
+        year: yearTouched ? year : null,
       }),
     );
   }
@@ -163,7 +163,7 @@ export function Round({
   const canSubmit =
     (!artistSolved && !!selectedArtist) ||
     (!songSolved && !!selectedSong) ||
-    (!yearSolved && yearEnabled);
+    (!yearSolved && yearTouched);
 
   return (
     <div className="round">
@@ -205,28 +205,28 @@ export function Round({
             ✅ Year — {round.yearGuess} <span className="pts">+{round.yearPoints ?? 0}</span>
           </div>
         ) : (
-          <div className="year-block">
-            <label className="year-toggle">
-              <input
-                type="checkbox"
-                checked={yearEnabled}
-                onChange={(e) => setYearEnabled(e.target.checked)}
-              />
-              Guess the year
-            </label>
-            {yearEnabled && (
-              <div className="year-row">
-                <input
-                  type="range"
-                  min="1950"
-                  max="2026"
-                  value={year}
-                  aria-label="Year"
-                  onChange={(e) => setYear(Number(e.target.value))}
-                />
-                <span className="year-value">{year}</span>
-              </div>
-            )}
+          <div className={`year-block${yearTouched ? '' : ' year-untouched'}`}>
+            <div className="year-label">
+              {yearTouched ? (
+                <>
+                  Year: <span className="year-value">{year}</span>
+                </>
+              ) : (
+                'Year — drag the slider to guess (optional)'
+              )}
+            </div>
+            <input
+              type="range"
+              min="1950"
+              max="2026"
+              value={year}
+              aria-label="Year"
+              onPointerDown={() => setYearTouched(true)}
+              onChange={(e) => {
+                setYear(Number(e.target.value));
+                setYearTouched(true);
+              }}
+            />
           </div>
         )}
       </div>
