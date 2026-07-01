@@ -91,9 +91,10 @@ function artistIsCorrect(track: PoolTrack, artistId?: string | null): boolean {
 
 /**
  * Lock in the current guesses. A correct artist/song banks its points at the
- * CURRENT tier; a WRONG artist/song ends the round (you committed and missed).
- * Year is tolerance-scored, so it's never "wrong" — it just locks in. The round
- * also ends once all three are solved. Empty fields aren't guesses.
+ * CURRENT tier; a WRONG artist/song just advances to the next (longer) clip —
+ * or ends the round if you're already on the last tier. Year is tolerance-scored
+ * and locks in on submit (the one-shot objective). The round ends once all three
+ * are solved. Empty fields aren't guesses.
  */
 export function submitGuess(state: RoundState, guess: Guess): RoundState {
   if (state.status !== 'guessing') return state;
@@ -110,8 +111,8 @@ export function submitGuess(state: RoundState, guess: Guess): RoundState {
     yearPoints = 0,
   } = state;
 
-  // A guessed artist/song that's correct banks its points; one that's wrong
-  // ends the round. Year is tolerance-scored, so it just locks in.
+  // A guessed artist/song that's correct banks its points; a wrong one advances
+  // to the next clip (below). Year is tolerance-scored, so it just locks in.
   let wrong = false;
 
   if (!artistSolved && guess.artistId != null) {
@@ -137,9 +138,18 @@ export function submitGuess(state: RoundState, guess: Guess): RoundState {
   }
 
   const allSolved = artistSolved && songSolved && yearSolved;
-  const status: RoundStatus = wrong || allSolved ? 'done' : 'guessing';
+  let tier = state.tier;
+  let status: RoundStatus = 'guessing';
+  if (allSolved) {
+    status = 'done';
+  } else if (wrong) {
+    // Wrong artist/song → play the next, longer clip. Out of clips → round ends.
+    if (state.tier < LAST_TIER) tier = state.tier + 1;
+    else status = 'done';
+  }
   return {
     ...state,
+    tier,
     artistSolved,
     songSolved,
     yearSolved,

@@ -45,16 +45,18 @@ Audio plays the current **tier**. Tiers escalate the amount of audio revealed:
   **artist ID** (any credited artist in `track.artists[]` counts).
 - **Song** — typeahead over the full pool, exact **track ID** match;
   **title-only** suggestions that need **≥3 typed letters**.
-- **Year** — slider 1950 → 2026 (opt-in checkbox).
+- **Year** — a slider 1950 → 2026 that's grayed out until you touch it; touching
+  it opts into a year guess for the round. It's the one **one-shot** objective —
+  it locks on submit.
 
-**A correct guess banks its points but does NOT end the round.** The player
-keeps escalating clips and guessing the remaining objectives:
+**Correct guesses bank points; wrong artist/song guesses just cost you a clip.**
 - **Lock in** → bank any currently-correct objectives at the **current tier**
-  (a year guess locks in its tolerance points). Wrong guesses bank nothing.
-- **More audio** → advance to the next, longer tier (its points drop for
-  whatever you solve from then on).
+  (a touched year locks in its tolerance points). A **wrong artist/song advances
+  to the next, longer clip** (no penalty beyond the lower tier value) — it does
+  *not* end the round.
+- **More audio** → advance to the next clip without guessing.
 - **Give up** → end the round now, keeping everything banked.
-- The round ends automatically once **all three** are solved.
+- The round ends when **all three** are solved, or you run out of clips / give up.
 
 So you might nail the artist at 2s (50), need the full clip for the song (10),
 and lock a close-but-not-exact year (15). Whatever you bank is yours.

@@ -84,25 +84,35 @@ describe('submitGuess — bank points, keep going', () => {
     expect(r.status).toBe('guessing');
   });
 
-  it('ends the round on a wrong guess — marked unsolved, no points', () => {
+  it('advances to the next clip on a wrong guess (does not end the round)', () => {
     const r = submitGuess(startRound(TRACK), { artistId: 'nope' });
     expect(r.artistSolved).toBe(false);
-    expect(r.status).toBe('done');
+    expect(r.status).toBe('guessing');
+    expect(r.tier).toBe(1); // next, longer clip
     expect(r.score).toBe(0);
   });
 
-  it('banks the correct parts, then ends the round if any guess is wrong', () => {
+  it('banks the correct parts and still advances on a wrong one', () => {
     const r = submitGuess(startRound(TRACK), { artistId: 'artist-1', trackId: 'wrong-id' });
-    expect(r.artistSolved).toBe(true);
+    expect(r.artistSolved).toBe(true); // artist banked
     expect(r.songSolved).toBe(false);
-    expect(r.score).toBe(50); // artist banked before the wrong song ended it
-    expect(r.status).toBe('done');
+    expect(r.score).toBe(50);
+    expect(r.status).toBe('guessing');
+    expect(r.tier).toBe(1); // wrong song → next clip
   });
 
-  it('keeps going when a partial guess is all-correct (artist only)', () => {
+  it('ends the round on a wrong guess only when out of clips (last tier)', () => {
+    const atLastTier = advanceTier(advanceTier(advanceTier(startRound(TRACK)))); // tier 3
+    const r = submitGuess(atLastTier, { artistId: 'nope' });
+    expect(r.status).toBe('done');
+    expect(r.tier).toBe(3);
+  });
+
+  it('stays on the same clip when a partial guess is all-correct (artist only)', () => {
     const r = submitGuess(startRound(TRACK), { artistId: 'artist-1' });
     expect(r.artistSolved).toBe(true);
-    expect(r.status).toBe('guessing'); // song + year still open, nothing wrong
+    expect(r.status).toBe('guessing');
+    expect(r.tier).toBe(0); // no wrong guess → same clip
   });
 
   it('does not double-count an already-solved component', () => {
